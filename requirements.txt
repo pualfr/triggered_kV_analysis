@@ -1,0 +1,14 @@
+numpy
+pandas
+matplotlib
+pydicom
+SimpleITK
+diffdrr==0.5.1
+torch
+torchio
+opencv-python
+scikit-image
+Pillow
+tifftools
+reportlab
+loguru
