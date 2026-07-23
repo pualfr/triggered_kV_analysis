@@ -4,7 +4,7 @@ This folder contains local snapshots of selected Python dependencies from the or
 
 These files are provided for peer-review inspection of the execution environment and to document local package-level adjustments that affected the DRR generation workflow.
 
-In particular, the local TorchIO version includes a modification of `torchio.data.Image.get_center()`. This modification calls `calcule_isocentre_test_4_2_opti.py` to extract the treatment isocenter from the RTPLAN and compute the offset between the RTPLAN isocenter and the planning CT center. This corrected center is then used during DRR generation through the DiffDRR/TorchIO workflow.
+In particular, the local TorchIO version includes a modification of `torchio.data.Image.get_center()`. This modification calls `calcule_isocentre_test_4_2_opti.py` to extract the treatment isocenter from the RTPLAN and compute the offset between the RTPLAN isocenter and the planning CT center. This corrected center is then used during DRR generation through the DiffDRR/TorchIO workflow. It also contains a modified Image.py file.
 
 The recommended installation route remains the dependency list in `requirements.txt`. The `vendor/` folder is not intended to replace a clean package installation for the final public release.
 
