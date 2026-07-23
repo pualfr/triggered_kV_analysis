@@ -1084,7 +1084,7 @@ class ProgressGUI:
     
 # #########################################################################################################################################  
 
-def main(reuse_drr=True):
+def main(reuse_drr=False):
     """
     Description: Runs the checks,
     generates the DRRs from the dicoms,
@@ -1312,9 +1312,10 @@ def main(reuse_drr=True):
             moving = sitk.ReadImage(output_path+"/tiff_isocal/im_isocal"+str(i)+".tif", sitk.sitkFloat32)
             
             fixed = sitk.SmoothingRecursiveGaussian(fixed, sigma=1)
-               
-            show_popup(fixed,  "Fixed bin")
-            show_popup(moving, "Moving bin")
+            
+            # De-comment to see live images while code is running
+            # show_popup(fixed,  "Fixed bin")
+            # show_popup(moving, "Moving bin")
             
             # ---------- Pass 1 : MS (robuste) ----------
             R1 = sitk.ImageRegistrationMethod()
