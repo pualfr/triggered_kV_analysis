@@ -5,31 +5,31 @@ spider version 5
 Python 3.12.4
 @author: Quentin Léo Techer
 """
-#importation des bibliothéques
+# Importing libraries
 
-#gestion et parcours des fichiers
+# File management and traversal
 from pathlib import Path
 import os 
-#graphique 
+# Graphics 
 import matplotlib.pyplot as plt
-#lecture des Fichiers DICOM
+# Reading DICOM files
 from pydicom import dcmread 
-#vérification du programme
+# Program verification
 from loguru import logger
-#génération de la drr
+# DRR generation
 import SimpleITK as sitk
 from diffdrr.data import read
 from diffdrr.drr import DRR
 from diffdrr.visualization import plot_drr
 import torch
 
-#gestion des image
+# Image management
 import tifftools
 from PIL import Image
 from skimage import io
 from skimage.exposure import match_histograms, equalize_adapthist
 from skimage.registration import phase_cross_correlation
-#génération du rapport
+# Generate report
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Table, TableStyle
@@ -47,14 +47,14 @@ import time
 import sys
 
 
-#%%#########################################################################################################################################
+# #########################################################################################################################################
 def extract_UID_pCT(path):
     """
-    Description: prend en entrée le chemins du dossier contenant les images CT
-    renvoie les informations necessaire au check de l'UID.
+    Description: takes as input the path of the folder containing the CT images
+    returns the information necessary for the UID check.
     
-    entrée:path(str)
-    sortie:pCT_Frame_of_Reference_UID(liste),pCT_Series_Instance_UID(liste),pCT_SOP_Instance_UID(liste),pCT_Study_Instance_UID(liste).
+    input: path(str)
+    output: pCT_Frame_of_Reference_UID(list), pCT_Series_Instance_UID(list), pCT_SOP_Instance_UID(list), pCT_Study_Instance_UID(list).
     
     """ 
     L=os.listdir(path)
@@ -73,12 +73,12 @@ def extract_UID_pCT(path):
 ######################################################################################################### 
 def extract_UID_RTS(path):
     """
-    Description: prend en entrée le chemins du dossier contenant le RTStruct
-    renvoie les informations necessaire au check de l'UID.
+    Description: takes as input the path of the folder containing the RTStruct
+    returns the information necessary for the UID check.
     
-    entrée:path(str)
-    sortie:RTS_Frame_of_Reference_UID(liste),RTS_Series_Instance_UID(liste),RTS_Reference_SOP_Instance_UID(liste),RTS_SOP_Instance_UID(liste),
-           RTS_Reference_SOP_Instance_UID_pS(liste)
+    input: path(str)
+    output: RTS_Frame_of_Reference_UID(list), RTS_Series_Instance_UID(list), RTS_Reference_SOP_Instance_UID(list), RTS_SOP_Instance_UID(list),
+           RTS_Reference_SOP_Instance_UID_pS(list)
     
     """
     L=os.listdir(path)
@@ -91,7 +91,7 @@ def extract_UID_RTS(path):
         ds = dcmread(path +"/"+ i)
         RTS_Frame_of_Reference_UID.append(ds.FrameOfReferenceUID) 
         RTS_SOP_Instance_UID.append(ds.SOPInstanceUID)
-        #chemin pour accédé a RTS_Reference_SOP_Instance_UID,RTS_Reference_SOP_Instance_UID_pS et RTS_Series_Instance_UID
+        # Path to access RTS_Reference_SOP_Instance_UID, RTS_Reference_SOP_Instance_UID_pS, and RTS_Series_Instance_UID
         h=ds.ReferencedFrameOfReferenceSequence[0]
         h=h.RTReferencedStudySequence[0]
         RTS_Reference_SOP_Instance_UID_pS.append(h.ReferencedSOPInstanceUID)
@@ -105,11 +105,11 @@ def extract_UID_RTS(path):
 ########################################################################################################
 def extract_UID_RTP(path):
     """
-    Description: prend en entrée le chemins du dossier contenant les données RTP
-    renvoie les informations necessaire au check de l'UID.
+    Description: takes as input the path of the folder containing the RTP data
+    returns the information necessary for the UID check.
     
-    entrée:path(str)
-    sortie:RTP_Instance_UID(liste),RTP_Reference_Structure_Set_Sequence(liste).
+    input: path(str)
+    output: RTP_Instance_UID(list), RTP_Reference_Structure_Set_Sequence(list).
     
     """
     L=os.listdir(path)
@@ -125,11 +125,11 @@ def extract_UID_RTP(path):
 
 def extract_UID_pkV(path):
     """
-    Description: prend en entrée le chemins du dossier contenant les images pkV
-    renvoie les informations necessaire au check de l'UID.
+    Description: takes as input the path of the folder containing the pkV images
+    returns the information necessary for the UID check.
     
-    entrée:path(str)
-    sortie:RTP_Reference_SOP_Instance_UID(liste)
+    input: path(str)
+    output: RTP_Reference_SOP_Instance_UID(list)
     
     """
 
@@ -144,11 +144,11 @@ def extract_UID_pkV(path):
 #########################################################################################################
 def check_pkV_RTP(UID_kV,UID_RTP):
     """
-    Description: prend en entrée informations relative à l'UID du patient provenant du pkV et RTPlan
-    renvoie True si les informations relative à l'UID corresponde False sinon.
+    Description: takes as input UID information relating to the patient from the pkV and RTPlan
+    returns True if the UID information matches, False otherwise.
     
-    entrée:UID_kV(liste),UID_RTP(tuple)
-    sortie:True/False (bool)
+    input: UID_kV(list), UID_RTP(tuple)
+    output: True/False (bool)
     
     """
     for i in UID_kV:
@@ -161,11 +161,11 @@ def check_pkV_RTP(UID_kV,UID_RTP):
 #########################################################################################################
 def check_RTP_RTS(UID_RTP,UID_RTS):
     """
-    Description: prend en entrée informations relative à l'UID du patient provenant du pkV et RTPlan
-    renvoie True si les informations relative à l'UID corresponde False sinon.
+    Description: takes as input UID information relating to the patient from the pkV and RTPlan
+    returns True if the UID information matches, False otherwise.
     
-    entrée:UID_RTS(tuple),UID_RTP(tuple)
-    sortie:True/False (bool)
+    input: UID_RTS(tuple), UID_RTP(tuple)
+    output: True/False (bool)
     
     """
     for i in UID_RTP[1]:
@@ -176,11 +176,11 @@ def check_RTP_RTS(UID_RTP,UID_RTS):
 #########################################################################################################
 def check_RTS_CT(UID_pCT,UID_RTS):
     """
-    Description: prend en entrée informations relative à l'UID du patient provenant du pCT et RTS
-    renvoie True si les informations relative à l'UID corresponde False sinon.
+    Description: takes as input UID information relating to the patient from the pCT and RTS
+    returns True if the UID information matches, False otherwise.
     
-    entrée:UID_RTS(tuple),UID_pCT(tuple)
-    sortie:True/False (bool)
+    input: UID_RTS(tuple), UID_pCT(tuple)
+    output: True/False (bool)
     
     """
     for i in range(len(UID_pCT[0])):
@@ -199,11 +199,11 @@ def check_RTS_CT(UID_pCT,UID_RTS):
 #########################################################################################################
 def full_check(path_pCT,path_RTP,path_pkV,path_RTS):
     """
-    Description: prend en entrée le chemins des dossier contenant les informations necessaires à la vérification des UID.
-    effectue la vérification et revoie True si elle est validé False si l'un des élément n'est pas correct.
+    Description: takes as input the paths of the folders containing the information necessary for the UID verification.
+    performs the verification and returns True if it is valid, False if one of the elements is incorrect.
     
-    entrée:path_pCT (str),path_RTP (str),path_pkV (str),path_RTS (str)
-    sortie:True/False (bool)
+    input: path_pCT (str), path_RTP (str), path_pkV (str), path_RTS (str)
+    output: True/False (bool)
     
     """
     UID_RTS=extract_UID_RTS(path_RTS)
@@ -211,27 +211,27 @@ def full_check(path_pCT,path_RTP,path_pkV,path_RTS):
     UID_RTP=extract_UID_RTP(path_RTP)
     UID_pCT=extract_UID_pCT(path_pCT)
     if check_RTP_RTS(UID_RTP, UID_RTS) is False:
-        print("l'un des UID ne correspond pas entre RTP et RTS")
+        print("One of the UIDs does not match between RTP and RTS")
         return False
     if check_RTS_CT(UID_pCT, UID_RTS) is False:
-        print("l'un des UID ne correspond pas entre pCT et RTS")
+        print("One of the UIDs does not match between pCT and RTS")
         return False
     if check_pkV_RTP(UID_kV, UID_RTP) is False:
-        print("l'un des UID ne correspond pas entre RTP et pkV")
+        print("One of the UIDs does not match between RTP and pkV")
         return False
-    print ("vérification des UID effectuée, tout correspond") 
+    print ("UID verification completed, everything matches") 
     return True
 #########################################################################################################
-def extract_angle_pkV(path,output_path, reuse_drr=False):
+def extract_angle_pkV(path,output_path, reuse_drr=True):
     """
-    Description: prend en entrée le chemins du dossier contenant les images kV pendant
-    renvoie la liste l'angle d'acquisition pour chaque fichier présent dans le dossier, ainsi que les Distances Source Imageur,
-    le nombre d'angle dans chaque pkV,la premiére occurance qui utilise le sid suivant, le nom du faisceau et le numéro du faisceau
+    Description: takes as input the path of the folder containing the kV images during treatment
+    returns the list of the acquisition angle for each file present in the folder, as well as the Source Imager Distances,
+    the number of angles in each pkV, the first occurrence that uses the following sid, the beam name and the beam number
     +
-    Extrait les images issues des pkV et les enregistre en .tif dans le dossier pkslice.
+    Extracts the images from the pkV and saves them as .tif in the pkslice folder.
     
-    entrée:path(str)
-    sortie:var_i (liste),sid (liste), npkV(liste),firstforsid(liste),Label(liste),RefBeamNumber
+    input: path(str)
+    output: var_i (list), sid (list), npkV(list), firstforsid(list), Label(list), RefBeamNumber
     
     """
     var_i=[]
@@ -241,12 +241,12 @@ def extract_angle_pkV(path,output_path, reuse_drr=False):
     firstforsid=[]
     npkV=[]
     RefBeamNumber=[]
-    logger.debug(f"début de l'extraction des images des pkv")
+    logger.debug(f"Start of pkV image extraction")
     for i in L:
         ds = dcmread(path+"/" + i)
         h=ds.ExposureSequence
         ds = dcmread(path_pkV+"/" + i)
-        #extraction des images du pkV
+        # Extraction of images from pkV
         if len(ds.pixel_array[0].shape)==2:
             for i, slice in enumerate(ds.pixel_array):
                 if (not reuse_drr):
@@ -267,40 +267,40 @@ def extract_angle_pkV(path,output_path, reuse_drr=False):
             npkV.append(len(h))
         sid.append(ds.RTImageSID)
         RefBeamNumber.append(ds.ReferencedBeamNumber)
-    logger.debug(f"fin de l'extraction des images pkv")
+    logger.debug(f"End of pkV image extraction")
     return var_i,sid,npkV,firstforsid,RefBeamNumber
 #########################################################################################################
 def convert_dcm_to_nii(dcm_folder, nii_path, skip=False, relative_nii_path=None): #mettre skip a True a la fin
     """
-    Convertis un dossier dicom (.dcm) en un seul fichier nii (.nii).
+    Converts a dicom (.dcm) folder into a single nii (.nii) file.
 
-    entrée:
-    - dcm_folder (str): Chemin du dossier contenant des Fichiers DICOM.
-    - nii_path (str): Chemin de l'emplacement de sauvegarde du fichier nii
-    - skip (bool):Permet de passer la convertion si les test est vrai.Par défaut sur  True.
-    - relative_nii_path (str, optional): chemin relatif pour des raisons de logging. Par défaut None.
+    input:
+    - dcm_folder (str): Path of the folder containing DICOM Files.
+    - nii_path (str): Path of the save location for the nii file
+    - skip (bool): Allows the conversion to be skipped if the test is true. Default is True.
+    - relative_nii_path (str, optional): relative path for logging purposes. Default is None.
 
-    sortie:
+    output:
     - None
     """
-    logger.debug(f"début convertion en .nii")
-    # Créer le répertoire de sortie si nécessaire
+    logger.debug(f"Start of conversion to .nii")
+    # Create output directory if necessary
     os.makedirs(os.path.dirname(nii_path), exist_ok=True)
     nii_path = Path(nii_path)
 
-    # Vérifier si le fichier de sortie existe déjà
+    # Check if the output file already exists
     if skip and nii_path.exists():
-        logger.info(f"Skipped, déjà convertis")
-        return  # Ne rien faire si le fichier existe déjà
+        logger.info(f"Skipped, already converted")
+        return  # Do nothing if the file already exists
 
     else:
-        # Lire tous les Fichiers DICOM dans le dossier
+        # Read all DICOM files in the folder
         dcm_files = sorted(Path(dcm_folder).glob('*.dcm'))
         if not dcm_files:
-            logger.warning(f"Pas de DICOM dans le fichier: {dcm_folder}")
+            logger.warning(f"No DICOM files in the folder: {dcm_folder}")
             return
 
-        # Lire les images DICOM et les combiner en une seule image volumétrique
+        # Read DICOM images and combine them into a single volumetric image
         reader = sitk.ImageSeriesReader()
         L=os.listdir(dcm_folder)
         dicom_names=[]
@@ -311,10 +311,10 @@ def convert_dcm_to_nii(dcm_folder, nii_path, skip=False, relative_nii_path=None)
         image = reader.Execute()
         sitk.WriteImage(image, str(nii_path))
         if relative_nii_path:
-            logger.debug(f"Convertis {relative_nii_path}")
+            logger.debug(f"Converted {relative_nii_path}")
         else:
-            logger.debug(f"Convertis {nii_path}")
-        logger.debug(f"fin convertion en .nii")
+            logger.debug(f"Converted {nii_path}")
+        logger.debug(f"End of conversion to .nii")
 
 #########################################################################################################################################
 def command_iteration(method):
@@ -328,11 +328,11 @@ def command_iteration(method):
 #########################################################################################################################################
 def extract_info_pkV(path):
     """
-    Description: prend en entrée le chemins du dossier contenant le pkV
-    renvoie les informations lié au spacing, à la dimension des images pkV et celles necessaires à la création du rapport. 
+    Description: takes as input the path of the folder containing the pkV
+    returns the information related to the spacing, the dimension of the pkV images, and those necessary for creating the report.
     
-    entrée:path(str)
-    sortie:spacingx(float),spacingy(float),ds.Rows(int),ds.Columns(int),patient_ID(str),patient_Name(str),Aquisition_Date(int)
+    input: path(str)
+    output: spacingx(float), spacingy(float), ds.Rows(int), ds.Columns(int), patient_ID(str), patient_Name(str), Aquisition_Date(int)
     
     """
     L=os.listdir(path)
@@ -351,11 +351,11 @@ def extract_info_pkV(path):
 #########################################################################################################################################
 def extract_info_RTP(path,RefBeamNumber):
     """
-    Description: prend en entrée le chemins du dossier contenant le RTPlan
-    renvoie les informations necessaires à la création du rapport. 
+    Description: takes as input the path of the folder containing the RTPlan
+    returns the information necessary for creating the report.
     
-    entrée:path(str)
-    sortie:RTPLANLABEL(str)
+    input: path(str)
+    output: RTPLANLABEL(str)
     
     """
     L=os.listdir(path)
@@ -372,46 +372,46 @@ def extract_info_RTP(path,RefBeamNumber):
 #########################################################################################################################################
 def erase_file(path):
     """
-    Description:  Efface le contenu du dossier situé dans path (ne fonctionne que si le dossier ne contient pas d'autre dossier).
+    Description: Erases the content of the folder located at path (only works if the folder does not contain another folder).
         
-    entrée:path(str)
-    sortie:None
+    input: path(str)
+    output: None
     
     """
     if os.listdir(path)==[]:
-        # logger.debug(f"le fichier est vide")
+        # logger.debug(f"The folder is empty")
         return
-    for fichier in os.listdir(path):
-        os.remove(path+"/"+fichier)
-        # logger.debug(f"le fichier a été vidé correctement")
+    for file in os.listdir(path):
+        os.remove(path+"/"+file)
+        # logger.debug(f"The folder has been successfully emptied")
 #########################################################################################################################################
 def create_directories(path):
     """
-    Description:  créé le dossier situé dans path ainsi que tout les dossiers necessaires pour arriver jusqu'à lui.
+    Description: Creates the folder located at path as well as all the folders necessary to reach it.
         
-    entrée:path(str)
-    sortie:None
+    input: path(str)
+    output: None
     
     """
     if os.access(path, os.F_OK)==False:
         os.makedirs(path)
     return
-#%%#########################################################################################################################################
+# #########################################################################################################################################
 def reconstruct_ct(gantry_angle_pkv,sid,spacingx,spacingy,Rows,Columns,firstforsid,input_path, output_path, relative_output_path=None, progress=None) -> None:
     """
     Description:
-    Génére des DRR à l'aide des images kV en fonction de l'angle de rotation et les sauvegardes sous forme de tiff
+    Generates DRRs using the kV images as a function of the rotation angle and saves them as tiff files
     
     
-    entrée:gantry_angle_pkv(list),sid(list),spacingx(list),spacingy(list),Rows(int),Columns(int),firstforsid(list),
+    input: gantry_angle_pkv(list), sid(list), spacingx(list), spacingy(list), Rows(int), Columns(int), firstforsid(list),
            input_path(str), output_path(str), relative_output_path=None
 
-    sortie:None
+    output: None
     """
-    logger.debug(f"debut de la reconstuction")
-    # Créer le répertoire de sortie si nécessaire
+    logger.debug(f"Start of reconstruction")
+    # Create output directory if necessary
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    # Vérifier si les fichiers de sortie existent déjà
+    # Check if output files already exist
     base, ext = os.path.splitext(output_path)
     # Read the input CT image
     convert_dcm_to_nii(input_path,output_path+"/CT_isocal.nii")
@@ -431,7 +431,7 @@ def reconstruct_ct(gantry_angle_pkv,sid,spacingx,spacingy,Rows,Columns,firstfors
             l+=1
         drr = DRR(
             subject,     # An object storing the CT volume, origin, and voxel spacing
-            sdd=sid[l],  # Source-to-detector distance (i.e., focal length)  a modifier pour faire correspondre au cas de multiple pkV
+            sdd=sid[l],  # Source-to-detector distance (i.e., focal length)  to be modified to match the case of multiple pkV
             height=256,  # Image height (if width is not provided, the generated DRR is square)
             delx=spacingx[l],    # Pixel spacing (in mm) 
             dely=spacingy[l],
@@ -441,7 +441,7 @@ def reconstruct_ct(gantry_angle_pkv,sid,spacingx,spacingy,Rows,Columns,firstfors
         translations = torch.tensor([[0.0,1000,0.0 ]], device=device)
         rotations = torch.tensor([[(2*torch.pi/360)*gantry_angle_pkv[i],0,0]], device=device)
         # 📸 Also note that DiffDRR can take many representations of SO(3) 📸
-        # For example, quaternions, rotation matrix, axis-angle, etc...
+        # For example, quaternions, rotation matrix, axis-angle, etc.
         img = drr(rotations, translations, parameterization="euler_angles", convention="ZXY")
         plot_drr(img, ticks=False)
         plt.gca().set_axis_off()
@@ -457,7 +457,7 @@ def reconstruct_ct(gantry_angle_pkv,sid,spacingx,spacingy,Rows,Columns,firstfors
         im = im.resize((Columns,Rows))
         im= im.convert("I;16").save(output_path+"/tiff_isocal/im_isocal"+str(i)+".tif")
         
-        # à la fin de l’itération i :
+        # At the end of iteration i:
         if progress is not None:
             progress.step(1, msg=f"Generating DRRs ({i+1}/{N})")
     # Log the relative output path if provided
@@ -466,52 +466,52 @@ def reconstruct_ct(gantry_angle_pkv,sid,spacingx,spacingy,Rows,Columns,firstfors
     else:
         logger.debug(f"Reconstructed {output_path}")
     return
-#%%#########################################################################################################################################
+# #########################################################################################################################################
 def extract_result(tfm_path):
     """
-    Description:  extrait les données lié au recalage 
+    Description: extracts the data related to the registration
         
-    entrée:recap_path(str)
-    sortie:(pixelvaluex(float),pixelvaluey(float)) (tuple)
+    input: recap_path(str)
+    output: (pixelvaluex(float), pixelvaluey(float)) (tuple)
     
     """
     tx = sitk.ReadTransform(tfm_path)
 
-    # Cas simple: TranslationTransform
+    # Simple case: TranslationTransform
     if tx.GetName() == "TranslationTransform":
         dx, dy = tx.GetParameters()  # (dx, dy)
         return [float(dx), float(dy)]
 
-    # Cas composite (selon pipeline / versions)
+    # Composite case (depending on pipeline/versions)
     if isinstance(tx, sitk.CompositeTransform):
-        # Cherche la première translation
+        # Look for the first translation
         for k in range(tx.GetNumberOfTransforms()):
             t = tx.GetNthTransform(k)
             if t.GetName() == "TranslationTransform":
                 dx, dy = t.GetParameters()
                 return [float(dx), float(dy)]
-        # fallback: paramètres du premier transform
+        # Fallback: parameters of the first transform
         params = tx.GetNthTransform(0).GetParameters()
         return [float(params[0]), float(params[1])]
 
-    # Fallback générique: on prend les 2 premiers paramètres
+    # Generic fallback: take the first 2 parameters
     params = tx.GetParameters()
     if len(params) < 2:
-        raise ValueError(f"Transform inattendue dans {tfm_path}: {tx.GetName()}, params={params}")
+        raise ValueError(f"Unexpected transform in {tfm_path}: {tx.GetName()}, params={params}")
     return [float(params[0]), float(params[1])]
 
-#%%#########################################################################################################################################
-def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Name,Aquisition_Date,RTPLabel,BeamName):
+# #########################################################################################################################################
+def report(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Name,Aquisition_Date,RTPLabel,BeamName):
     """
-    Description:  créé un rapport du recalage dans le dossier dans lequel ce trouve le programme
+    Description: creates a registration report in the folder where the program is located
         
-    entrée:output_path(str),npkV(list),spacingx(float),spacingy(float),GantryAngle(list),
-           patient_ID(str),patient_Name(str),Aquisition_Date(str),RTPLabel(str),BeamName(list)
-    sortie:None
+    input: output_path(str), npkV(list), spacingx(float), spacingy(float), GantryAngle(list),
+           patient_ID(str), patient_Name(str), Aquisition_Date(str), RTPLabel(str), BeamName(list)
+    output: None
     
     """
-    logger.debug(f"Début de la rédaction du rapport")
-    #%%extract registration info
+    logger.debug(f"Start of report writing")
+    # Extract registration info
     Xrecal=[]
     Yrecal=[]
     for r in range(len(os.listdir(output_path+"/recap"))):
@@ -542,47 +542,47 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
     etya=np.sqrt(etya/len(Ymm))
     etn=np.sqrt(etn/len(Vect))
     # create a Canvas object with a filename
-    pdf_path = os.path.join(output_path, "rapport_recalage.pdf")
+    pdf_path = os.path.join(output_path, "registration_report.pdf")
     c = canvas.Canvas(pdf_path, pagesize=letter)
     width, height = letter  # A4 pagesize
-    #create Centred underlined title
-    #%%première page -informations du patient
+    #Create centered underlined title
+    # First page - patient information
     c.setFont("Helvetica",18)
-    c.drawCentredString(width/2,height-50, "Informations relatives au patient")
+    c.drawCentredString(width/2,height-50, "Patient Information")
     
     c.line(width/2-132, height-55,width/2+132, height-55)
-    data=[["Id patient",patient_ID],
-          ["Nom",str(patient_Name)[0:str(patient_Name).find('_')]],
-          ["Prénom",str(patient_Name)[str(patient_Name).find('_')+1:]],
-          ["Nom du plan",RTPLabel],
-          ["Jour du traitement",str(Aquisition_Date[6:8])+" / "+str(Aquisition_Date[4:6])+" / "+str(Aquisition_Date[0:4]),]]
+    data=[["Patient ID",patient_ID],
+          ["Last Name",str(patient_Name)[0:str(patient_Name).find('_')]],
+          ["First Name",str(patient_Name)[str(patient_Name).find('_')+1:]],
+          ["Plan Name",RTPLabel],
+          ["Treatment Date",str(Aquisition_Date[6:8])+" / "+str(Aquisition_Date[4:6])+" / "+str(Aquisition_Date[0:4]),]]
     t=Table(data,colWidths=width/4,rowHeights=height/12)
     t.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 0.25, colors.black),('ALIGN',(0,0),(-1,-1),'CENTER'),('VALIGN',(0,0),(-1,-1),'MIDDLE')]))
     t.wrapOn(c,width/3,height*2/3)
     t.drawOn(c, width/4, height/3)
     #create a new page with a Centred underlined title and the 
-    #%%deuxième page -données générale sur le recalage
-    #data and picture of the registation
+    # Second page - general data on registration
+    # Data and image of the registration
     c.showPage()
     c.setFont("Helvetica",18)
-    c.drawCentredString(width/2,height-50, "Résumé")
+    c.drawCentredString(width/2,height-50, "Summary")
     c.line(width/2-35, height-55,width/2+35, height-55)
-    data=[["Décalage absolu maximal suivant x",str("%.2f" % max([abs(x)for x in Xmm]))+" mm"],
-          ["Décalage absolu maximal suivant y",str("%.2f" % max([abs(y)for y in Ymm]))+" mm"],
-          ["Norme du vecteur de décalage maximal ",str("%.2f" %max(Vect))+" mm"],
-          ["Décalage moyen suivant x +/- écart type",str("%.2f" % moyX)+" mm +/- "+str("%.2f" % etx)+" mm"],
-          ["Décalage absolu moyen suivant x +/- écart type",str("%.2f" % moyabsX)+" mm +/- "+str("%.2f" % etxa)+" mm"],
-          ["Décalage moyen suivant y +/- écart type",str("%.2f" % moyY)+" mm +/- "+str("%.2f" % ety)+" mm"],
-          ["Décalage absolu moyen suivant y +/- écart type",str("%.2f" % moyabsY)+" mm +/- "+str("%.2f" % etya)+" mm"],
-          ["Moyenne de la norme du vecteur de décalage +/- écart type",str("%.2f" % moyVect)+" mm +/- "+str("%.2f" % etn)+" mm"]]
+    data=[["Maximum absolute shift along x",str("%.2f" % max([abs(x)for x in Xmm]))+" mm"],
+          ["Maximum absolute shift along y",str("%.2f" % max([abs(y)for y in Ymm]))+" mm"],
+          ["Norm of the maximum shift vector ",str("%.2f" %max(Vect))+" mm"],
+          ["Average shift along x +/- standard deviation",str("%.2f" % moyX)+" mm +/- "+str("%.2f" % etx)+" mm"],
+          ["Average absolute shift along x +/- standard deviation",str("%.2f" % moyabsX)+" mm +/- "+str("%.2f" % etxa)+" mm"],
+          ["Average shift along y +/- standard deviation",str("%.2f" % moyY)+" mm +/- "+str("%.2f" % ety)+" mm"],
+          ["Average absolute shift along y +/- standard deviation",str("%.2f" % moyabsY)+" mm +/- "+str("%.2f" % etya)+" mm"],
+          ["Average norm of the shift vector +/- standard deviation",str("%.2f" % moyVect)+" mm +/- "+str("%.2f" % etn)+" mm"]]
     t=Table(data,colWidths=width*0.45,rowHeights=height*0.04)
     t.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 0.25, colors.black),('ALIGN',(-1,0),(-1,-1),'CENTER'),('VALIGN',(0,0),(-1,-1),'MIDDLE')]))
     t.wrapOn(c,width/3,height*2/3)
     t.drawOn(c, (width-width*0.90)/2, height*0.6)
     
-    c.drawCentredString(width/2,height*0.6-30,"Décalage suivant x et y en fonction de l'angle d'acquisition")
+    c.drawCentredString(width/2,height*0.6-30,"Shift along x and y as a function of acquisition angle")
     
-    #%%spider graph
+    # Spider graph
     h=(height/40)+10
     for i in range(len(npkV)):
         
@@ -600,23 +600,23 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
         
         # ------- PART 1: Create background
          
-        # number of variable
+        # Number of variables
         categories=list(df)[1:]
         N = len(categories)
-        # What will be the angle of each axis in the plot? (we divide the plot / number of variable)
+        # What will be the angle of each axis in the plot? (we divide the plot / number of variables)
         angles=[0.0]
         if N !=1:
             for n in range(0,N-2):
                 angles.append(float(angles[-1]+(int(categories[n+1])-int(categories[n]))/180*np.pi))
             angles.append(float((((int(categories[N-1])-int(categories[0]))))/180*np.pi))
-        # Initialise the spider plot
+        # Initialize the spider plot
         ax = plt.subplot( polar=True)
          
         # If you want the first axis to be on top:
         ax.set_theta_offset((np.pi/2-(categories[0]*np.pi/180)))
         ax.set_theta_direction(-1)
          
-        # Draw one axe per variable + add labels
+        # Draw one axis per variable + add labels
         plt.xticks(angles, categories)
          
         # Draw ylabels
@@ -628,12 +628,12 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
             values=df.loc[n].drop('group').values.flatten().tolist()
             values += values[:0]
             if n==1:
-                ax.plot(angles, values,"o", linewidth=1, linestyle='solid', label=str(spidercdata["group"][n])+" (en mm)   ――  Angle d'acquisition (en °)", ms=2)
+                ax.plot(angles, values,"o", linewidth=1, linestyle='solid', label=str(spidercdata["group"][n])+" (mm)   ――  Acquisition angle (in °)", ms=2)
             else:
-                ax.plot(angles, values,"o", linewidth=1, linestyle='solid', label=str(spidercdata["group"][n])+" (en mm)", ms=2)
+                ax.plot(angles, values,"o", linewidth=1, linestyle='solid', label=str(spidercdata["group"][n])+" (mm)", ms=2)
             ax.fill(angles, values,facecolor=fc[n], alpha=0.15, label='_nolegend_')
         ax.tick_params(axis='x',labelsize=8,direction="out")
-        ax.set_title("Décalage pour le fichier : "+BeamName[i])  # Add a title to the Axes.
+        ax.set_title("Shift for file: "+BeamName[i])  # Add a title to the Axes.
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.056),fancybox=True, shadow=False, ncol=5)
         imgdata = BytesIO()
         plt.savefig(imgdata, dpi=300)
@@ -651,11 +651,11 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
     if pagejump==False:
         c.showPage()
         
-    #%%graphique du décalage suivant x et suivant Y en fonction de l'angle.
+    # Graph of shift along x and y as a function of angle.
     for i in range(len(npkV)):
         fig, ax = plt.subplots()
         c.setFont("Helvetica",18)
-        c.drawCentredString(width/2,height-50, "Données concernant le fichier pkV : "+BeamName[i])
+        c.drawCentredString(width/2,height-50, "Data concerning the pkV file: "+BeamName[i])
         if i!=0:
             xn=list(str("%.2f" % j) for j in GantryAngle[npkV[i-1]:npkV[i]])
             yn=Xmm[npkV[i-1]:npkV[i]]
@@ -666,9 +666,9 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
         if len(xn)>=8:
             ax.xaxis.set_major_locator(plt.MaxNLocator(int(len(xn)/2)))
         ax.tick_params(axis='x',labelrotation = 45,right=True,labelsize=8)
-        plt.title("Décalage suivant x en fonction de l'angle d'acquisition")
-        plt.xlabel("Angle d'acquisition (en °)")
-        plt.ylabel('Décalage suivant x (en mm)')
+        plt.title("Shift along x as a function of acquisition angle")
+        plt.xlabel("Acquisition angle (in °)")
+        plt.ylabel('Shift along x (in mm)')
         plt.subplots_adjust(top=0.925, 
                     bottom=0.20)
         ax.grid(True)
@@ -689,9 +689,9 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
         if len(xn)>=8:
             ax.xaxis.set_major_locator(plt.MaxNLocator(int(len(xn)/2)))
         ax.tick_params(axis='x',labelrotation = 45,right=True,labelsize=8)
-        plt.title("Décalage suivant y en fonction de l'angle d'acquisition")
-        plt.xlabel("Angle d'acquisition (en °)")
-        plt.ylabel('Décalage suivant y (en mm)')
+        plt.title("Shift along y as a function of acquisition angle")
+        plt.xlabel("Acquisition angle (in °)")
+        plt.ylabel('Shift along y (in mm)')
         plt.subplots_adjust(top=0.925, 
                     bottom=0.20)
         ax.grid(True)
@@ -702,19 +702,19 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
         plt.close()
         c.showPage()
 
-#   #cette partie commentée est optionnel.Elle peu contenir des bugs non corriger avec les nouvelles versions du programme        
-#   #%%autre possibilité, plot tout les arc sur le même
-#   #test valable uniquement pour 2 pkV pour l'instant mais fonctionnel
+#   # This commented part is optional. It may contain bugs not fixed with the new versions of the program        
+#   # Another possibility, plot all arcs on the same
+#   # Test valid only for 2 pkV for now but functional
 #     x0=[]
 #     fig0,a0 = plt.subplots()
 #     fig, ax = plt.subplots()
 #     fig2, ay = plt.subplots()
-#     #%%########################################################################################################################
-#     def trie(x0,L1,L2,i):
+#     # ########################################################################################################################
+#     def sort_arcs(x0,L1,L2,i):
 #         L3=L1+L2
 #         L3.sort()
 #         sto=[]
-#         #prendre le plus faible ou le ou le plus fort en fonction du sens .
+#         #take the lowest or the highest depending on the direction.
 #         if (L2[0]>L2[1] and L1[0]>L1[0]) or  (L2[0]<L2[1] and L1[0]<L1[0]):
 #             L2.reverse()
 #         if L1[0]>L1[1] and L1[0]<L2[0]:
@@ -745,19 +745,19 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
 #             x0.append(j)
 #         return(x0)
 #     L1=list(float(i) for i in GantryAngle[0:npkV[0]])
-# #%%#################################### création de l'abscisse artificielle.
+# # #################################### creation of the artificial x-axis.
 #     for i in range(1,len(npkV)):
 #         L2=list(float(j)for j in GantryAngle[npkV[i-1]:npkV[i]])
-#         L1=trie(x0, L1, L2,i)
+#         L1=sort_arcs(x0, L1, L2,i)
 #         x0=[]
 #     if len(npkV)==1:
 #         x0=GantryAngle
 #     x0=list(str("%.2f" % j) for j in L1)
 
-#     #%%########################################################################################################################
+#     # ########################################################################################################################
 #     for i in range(len(npkV)):
 #           c.setFont("Helvetica",18)
-#           c.drawCentredString(width/2,height-50, "Données pkV ")
+#           c.drawCentredString(width/2,height-50, "pkV Data ")
 #           if i!=0:
 #               xn=list(str("%.2f" % j) for j in GantryAngle[npkV[i-1]:npkV[i]])
 #               ynx=Xmm[npkV[i-1]:npkV[i]]
@@ -770,9 +770,9 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
 #           ax.plot(xn, ynx,alpha=0.8,color=np.random.rand(3,),label=(str(os.listdir(path_pkV)[i])[0:3]+".."+str(os.listdir(path_pkV)[i])[20:23]))
 #           ay.plot(x0,Ymm,color="blue", alpha=0, label='_nolegend_')
 #           ay.plot(xn, yny,alpha=0.8,color=np.random.rand(3,),label=(str(os.listdir(path_pkV)[i])[0:3]+".."+str(os.listdir(path_pkV)[i])[20:23]))
-#     ax.set_title("Décalage suivant x en fonction de l'angle d'acquisition")
-#     ax.set_xlabel("angle d'observation(en °)")
-#     ax.set_ylabel('décalage suivant x (en mm)')
+#     ax.set_title("Shift along x as a function of acquisition angle")
+#     ax.set_xlabel("observation angle (in °)")
+#     ax.set_ylabel('shift along x (in mm)')
 #     ax.xaxis.set_major_locator(plt.MaxNLocator(int(len(xn)/2)))
 #     ax.tick_params(axis='x',labelrotation = 45,right=True,labelsize=8)
 #     ax.grid(False)
@@ -783,9 +783,9 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
 #     c.drawImage(Image,0,height*0.51, width,height*0.42)
 #     plt.close(fig)
    
-#     ay.set_title("Décalage suivant y en fonction de l'angle d'acquisition")
-#     ay.set_xlabel("Angle d'observation(en °)")
-#     ay.set_ylabel('Décalage suivant y (en mm)')
+#     ay.set_title("Shift along y as a function of acquisition angle")
+#     ay.set_xlabel("observation angle (in °)")
+#     ay.set_ylabel('Shift along y (in mm)')
 #     ay.xaxis.set_major_locator(plt.MaxNLocator(int(len(xn)/2)))
 #     ay.tick_params(axis='x',labelrotation = 45,right=True,labelsize=8)
 #     ay.grid(False)
@@ -800,14 +800,14 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
 #     c.showPage()
 
 
-    #test fin
+    # Test end
 
-    # #fonction initial 
+    # # Initial function 
     # fig, ax = plt.subplots()
     # fig2, ay = plt.subplots()
     # for i in range(len(npkV)):
     #       c.setFont("Helvetica",18)
-    #       c.drawCentredString(width/2,height-50, "Données pkV ")
+    #       c.drawCentredString(width/2,height-50, "pkV Data ")
     #       if i!=0:
     #           xn=list(str("%.2f" % j) for j in GantryAngle[npkV[i-1]:npkV[i]])
     #           ynx=Xmm[npkV[i-1]:npkV[i]]
@@ -818,9 +818,9 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
     #           yny=Ymm[0:npkV[i]]
     #       ax.plot(xn, ynx,alpha=0.8,color=np.random.rand(3,),label=str(os.listdir(path_pkV)[i])[0:23])
     #       ay.plot(xn, yny,alpha=0.8,color=np.random.rand(3,),label=str(os.listdir(path_pkV)[i])[0:23])
-    # ax.set_title("Décalage suivant x en fonction de l'angle d'acquisition")
-    # ax.set_xlabel("angle d'observation(en °)")
-    # ax.set_ylabel('décalage suivant x (en mm)')
+    # ax.set_title("Shift along x as a function of acquisition angle")
+    # ax.set_xlabel("observation angle (in °)")
+    # ax.set_ylabel('shift along x (in mm)')
     # ax.xaxis.set_major_locator(plt.MaxNLocator(int(len(xn)/2)))
     # ax.tick_params(axis='x',labelrotation = 45,right=True,labelsize=8)
     # ax.grid(False)
@@ -831,9 +831,9 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
     # c.drawImage(Image,0,height*0.51, width,height*0.42)
     # plt.close(fig)
     
-    # ay.set_title("Décalage suivant y en fonction de l'angle d'acquisition")
-    # ay.set_xlabel("Angle d'observation(en °)")
-    # ay.set_ylabel('Décalage suivant y (en mm)')
+    # ay.set_title("Shift along y as a function of acquisition angle")
+    # ay.set_xlabel("observation angle (in °)")
+    # ay.set_ylabel('Shift along y (in mm)')
     # ay.xaxis.set_major_locator(plt.MaxNLocator(int(len(xn)/2)))
     # ay.tick_params(axis='x',labelrotation = 45,right=True,labelsize=8)
     # ay.grid(False)
@@ -847,161 +847,161 @@ def rapport(output_path,npkV,spacingx,spacingy,GantryAngle,patient_ID,patient_Na
     # plt.close(fig2)
     # c.showPage()
     
-##remplacer ce qu'il y a juste au dessus par la fonction de plot simultannée fonctionnel si besoin.    
+## Replace the above with the simultaneous plot function if needed.    
     
     c.setFont("Helvetica",18)
-    c.drawCentredString(width/2,height-50, "Rapport de recalage")
+    c.drawCentredString(width/2,height-50, "Registration Report")
     c.line((width/2)-82, height-55,width/2+82, height-55)
     c.setFont("Helvetica",12)
     c.drawString(25, height-150,"Spacing x: "+str("%.2f" % spacingx)+" (mm/pixel)")
     c.drawString(25, height-165,"Spacing y: "+str("%.2f" % spacingy)+" (mm/pixel)")
     try:
-        c.drawString(25, height-180,"Crop : "+str("%.2f" % (crop_values[0]*sx))+" , "+str("%.2f" % (crop_values[1]*sy))+" (cm)")
+        c.drawString(25, height-180,"Crop: "+str("%.2f" % (crop_values[0]*sx))+" , "+str("%.2f" % (crop_values[1]*sy))+" (cm)")
     except:
-        c.drawString(25, height-180,"Crop : "+str(crop_values))
-    c.drawString(25, height-195,"Bone attenuation multiplier : "+str(bam))
+        c.drawString(25, height-180,"Crop: "+str(crop_values))
+    c.drawString(25, height-195,"Bone attenuation multiplier: "+str(bam))
     h=height-250
     sp=height*0.29
     for i in range(len(GantryAngle)):
         c.drawString(25,h-(i*sp),"Angle: "+str("%.2f" % GantryAngle[i])+" inst "+str(i+1))
-        c.drawImage(output_path+"/imgrap/im_isorecal"+str(i)+"damier.png", width=150, height=150,x=25,y=h-(i*sp)-160)
-        c.drawImage(output_path+"/imgrap/im_isorecal"+str(i)+".png", width=150, height=150,x=420,y=h-(i*sp)-160)
-        c.drawString(260,h-(i*sp)-20,"décalage en pixel")
-        c.drawString(200,h-(i*sp)-40,"décalage suivant x: "+str("%.2f" % Xrecal[i]))
-        c.drawString(200,h-(i*sp)-65,"décalage suivant y: "+str("%.2f" % Yrecal[i]))
-        c.drawString(260,h-(i*sp)-110,"décalage en mm ")
-        c.drawString(200,h-(i*sp)-130,"décalage suivant x: "+str("%.2f" % Xmm[i]))
-        c.drawString(200,h-(i*sp)-155,"décalage suivant y: "+str("%.2f" % Ymm[i]))
+        c.drawImage(output_path+"/imgreport/im_registered"+str(i)+"checkerboard.png", width=150, height=150,x=25,y=h-(i*sp)-160)
+        c.drawImage(output_path+"/imgreport/im_registered"+str(i)+".png", width=150, height=150,x=420,y=h-(i*sp)-160)
+        c.drawString(260,h-(i*sp)-20,"Shift in pixels")
+        c.drawString(200,h-(i*sp)-40,"Shift along x: "+str("%.2f" % Xrecal[i]))
+        c.drawString(200,h-(i*sp)-65,"Shift along y: "+str("%.2f" % Yrecal[i]))
+        c.drawString(260,h-(i*sp)-110,"Shift in mm ")
+        c.drawString(200,h-(i*sp)-130,"Shift along x: "+str("%.2f" % Xmm[i]))
+        c.drawString(200,h-(i*sp)-155,"Shift along y: "+str("%.2f" % Ymm[i]))
         if h-(i*sp)<sp*2:
             h=(height+((i)*sp))+150
             c.showPage() # Close the current page and possibly start on a new page.
     # finish page
-    # construct and save file to .pdf
+    # Construct and save file to .pdf
     c.save()
-    logger.debug(f"fin de la rédaction du rapport pdf")
-    #%%#########################################################################################################################################
+    logger.debug(f"End of report writing pdf")
+    # #########################################################################################################################################
 
-    logger.debug(f"début de la rédaction du rapport csv")
-    categories=["BeamName","Angle du bras","Décalage suivant X (mm)","Décalage suivant Y (mm)"]
-    csv_path = os.path.join(output_path, "rapport_recalage.csv")
-    with open(csv_path, 'w', newline='') as fichier:
-        writer = csv.DictWriter(fichier, fieldnames=categories,delimiter=';') # Création d'un objet writer
+    logger.debug(f"Start of report writing csv")
+    categories=["BeamName","Gantry Angle","Shift along X (mm)","Shift along Y (mm)"]
+    csv_path = os.path.join(output_path, "registration_report.csv")
+    with open(csv_path, 'w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=categories,delimiter=';') # Create a writer object
         writer.writeheader()
         for i in range(len(npkV)):
             if i!=0:
                 for j in range(npkV[i-1],npkV[i]):
-                    writer.writerow({"BeamName":str(BeamName[i]),"Angle du bras":str(GantryAngle[j]),"Décalage suivant X (mm)":str(Xmm[j]),"Décalage suivant Y (mm)":str(Ymm[j])})
+                    writer.writerow({"BeamName":str(BeamName[i]),"Gantry Angle":str(GantryAngle[j]),"Shift along X (mm)":str(Xmm[j]),"Shift along Y (mm)":str(Ymm[j])})
             else:
                 for j in range(0,npkV[i]):
-                    writer.writerow({"BeamName":str(BeamName[i]),"Angle du bras":str(GantryAngle[j]),"Décalage suivant X (mm)":str(Xmm[j]),"Décalage suivant Y (mm)":str(Ymm[j])})
+                    writer.writerow({"BeamName":str(BeamName[i]),"Gantry Angle":str(GantryAngle[j]),"Shift along X (mm)":str(Xmm[j]),"Shift along Y (mm)":str(Ymm[j])})
                 
-#%%#########################################################################################################################################
+# #########################################################################################################################################
 def crop_choice(Rows,Columns):
     """
-    Description:  Créer une fenêtre de choix 
-    Si la réponse est oui appel la fonction 'new_window'
-    Si la réponse est non ferme la fenêtre.
+    Description: Creates a choice window
+    If the answer is yes, calls the 'new_window' function
+    If the answer is no, closes the window.
         
-    entrée:Rows(int),Columns(int)
-    sortie:None
+    input: Rows(int), Columns(int)
+    output: None
     
     """
-    #%%############################
+    # ############################
     def new_window():
         """
-        Description:  Ferme la fenêtre de choix et ouvre la fenêtre de configuration du crop
+        Description: Closes the choice window and opens the crop configuration window
             
-        entrée:None
-        sortie:None
+        input: None
+        output: None
         
         """
         root.destroy()
         Def_Val_crop()
-    #%%############################
+    # ############################
     global row, column, crop_values
     row=Rows
     column= Columns
     crop_values=None
     root = tk.Tk()
     root.geometry('400x110')
-    root.title("Choix du crop")
+    root.title("Crop Choice")
     frm = ttk.Frame(root, padding=10,height=400,width=100 )
     frm.pack(anchor="center",expand=True)
-    ttk.Label(frm, text="Souhaitez vous définir une zone de crop ?").pack(ipady=10,anchor="n")
-    ttk.Button(frm, text="Non", command=root.destroy).pack(side="left",anchor="s")
-    ttk.Button(frm, text="Oui", command=new_window).pack(side="right",anchor="s")
+    ttk.Label(frm, text="Do you want to define a crop area?").pack(ipady=10,anchor="n")
+    ttk.Button(frm, text="No", command=root.destroy).pack(side="left",anchor="s")
+    ttk.Button(frm, text="Yes", command=new_window).pack(side="right",anchor="s")
     root.mainloop()
     return
-#%%#########################################################################################################################################
+# #########################################################################################################################################
 def Def_Val_crop():
     """
-    Description:  Créer une fenêtre de configuration du crop permettant d'entrer les dimensions du crop.
-    Si le bouton 'utiliser ces valeurs' est pressé, les données sont envoyé au programme.
-    Si le bouton 'Ne pas définir de crop' est pressé, ferme la fenêtre sans prendre en compte les entrées .
-    En cas de fermeture de la fenêtre utilise la valeur par défaut (None)
+    Description: Creates a crop configuration window allowing the crop dimensions to be entered.
+    If the 'Use these values' button is pressed, the data is sent to the program.
+    If the 'Do not define crop' button is pressed, closes the window without taking the entries into account.
+    If the window is closed, uses the Default value (None)
     
-    entrée:None
-    sortie:None
+    input: None
+    output: None
     
     """
     subw=tk.Tk()
-    subw.title("Configuration du crop")
+    subw.title("Crop Configuration")
     subw.geometry('410x170')
     frm = ttk.Frame(subw, padding=10,height=410,width=270 )
     frm.pack(anchor="center",expand=True)
-    ttk.Label(frm, text="Entrer les valeurs de crop en cm").pack(side="top")
+    ttk.Label(frm, text="Enter crop values in cm").pack(side="top")
     sfrm1=ttk.Frame(frm, padding=10,height=200,width=200 )
     sfrm1.pack()
     sfrm2=ttk.Frame(frm, padding=10,height=200,width=200 )
     sfrm2.pack()
-    tk.Label(sfrm1, text = 'largeur du crop:').pack(side="left",anchor="center")
+    tk.Label(sfrm1, text = 'Crop width:').pack(side="left",anchor="center")
     entryx1 =tk.Entry(sfrm1)
     entryx1.insert(0,str("%.2f" % (column*sx)) ) #Default Value
     entryx1.pack(side="left",anchor="center")
-    tk.Label(sfrm2, text = 'hauteur du crop:').pack(side="left",anchor="center")
+    tk.Label(sfrm2, text = 'Crop height:').pack(side="left",anchor="center")
     entryy1 =tk.Entry(sfrm2)
     entryy1.insert(0, str("%.2f" % (row*sy))) #Default Value
     entryy1.pack(side="left",anchor="center")
-    #%%############################
+    # ############################
     def setvalue():
         """
-        Descritption:
-            rend la variable crop_values global et lui attribue un tuple.
-            puis ferme la fenêtre
-        entrée: None
-        sortie: None
+        Description:
+            makes the crop_values variable global and assigns it a tuple.
+            then closes the window
+        input: None
+        output: None
         """
         global crop_values
         crop_values=(int(float(entryx1.get())/sx),int(float(entryy1.get())/sy))
         subw.destroy()
-    #%%############################
-    ttk.Button(frm, text="Ne pas définir de crop", command=subw.destroy).pack(side="left")
-    ttk.Button(frm, text="utiliser ces valeurs", command=setvalue).pack(side="right")
+    # ############################
+    ttk.Button(frm, text="Do not define crop", command=subw.destroy).pack(side="left")
+    ttk.Button(frm, text="Use these values", command=setvalue).pack(side="right")
     subw.focus()
     subw.mainloop()
     return
-#%%#########################################################################################################################################
+# #########################################################################################################################################
 def Def_Val_Bone():
     """
-    Description:  Créer une fenêtre de configuration du paramétre bone_attenuation_multiplier de diffDRR 
-    modifiant le contraste.
+    Description: Creates a configuration window for the diffDRR bone_attenuation_multiplier parameter
+    which modifies the contrast.
     
-    Si le bouton 'utiliser ces valeurs' est pressé, les données sont envoyé au programme.
-    Si le bouton 'Ne pas définir de crop' est pressé, ferme la fenêtre sans prendre en compte les entrées .
-    En cas de fermeture de la fenêtre utilise la valeur par défauts (3.0)
+    If the 'Use these values' button is pressed, the data is sent to the program.
+    If the 'Do not define crop' button is pressed, closes the window without taking the entries into account.
+    If the window is closed, uses the Default values (3.0)
     
-    entrée:None
-    sortie:None
+    input: None
+    output: None
     
     """
     subw=tk.Tk()
-    subw.title("Configuration du paramétre bone_attenuation_multiplier")
+    subw.title("Configuration of the bone_attenuation_multiplier parameter")
     subw.geometry('410x170')
     global bam
     bam=3.0
     frm = ttk.Frame(subw, padding=10,height=410,width=270 )
     frm.pack(anchor="center",expand=True)
-    ttk.Label(frm, text="Entrer la valeur du paramétre bone_attenuation_multiplier").pack(side="top")
+    ttk.Label(frm, text="Enter the value of the bone_attenuation_multiplier parameter").pack(side="top")
     sfrm1=ttk.Frame(frm, padding=10,height=200,width=200 )
     sfrm1.pack()
     entryx1 =tk.Entry(sfrm1)
@@ -1011,16 +1011,16 @@ def Def_Val_Bone():
         global bam
         bam=float(entryx1.get())
         subw.destroy()
-    ttk.Button(frm, text="valeur par défaut", command=subw.destroy).pack(side="left")
-    ttk.Button(frm, text="définir cette valeur", command=setvalue).pack(side="right")
+    ttk.Button(frm, text="Default value", command=subw.destroy).pack(side="left")
+    ttk.Button(frm, text="Set this value", command=setvalue).pack(side="right")
     subw.focus()
     subw.mainloop()
     return
 
-#%%#########################################################################################################################################
+# #########################################################################################################################################
 
 # ---------------------------------------------------------------------------
-# POUR AFFICHER UNE BARRE DE PROGRESSION
+# TO DISPLAY A PROGRESS BAR
 # ---------------------------------------------------------------------------
 class ProgressGUI:
     def __init__(self, total:int, title:str="Processing", width_px:int=420):
@@ -1047,7 +1047,7 @@ class ProgressGUI:
         self.info = ttk.Label(frm, text="0% — ETA: …", anchor="w")
         self.info.grid(row=2, column=0, sticky="we", pady=(8,0))
 
-        # rendre la fenêtre toujours au-dessus (optionnel)
+        # Make the window always on top (optional)
         self.root.attributes("-topmost", True)
         self.root.update()
 
@@ -1055,7 +1055,7 @@ class ProgressGUI:
         elapsed = time.time() - self.start_time
         rate = self.count / elapsed if elapsed > 0 else 0
         rem = (self.total - self.count) / rate if rate > 0 else 0
-        def fmt(t):  # petit formateur mm:ss
+        def fmt(t):  # small mm:ss formatter
             m, s = divmod(int(t), 60)
             return f"{m:02d}:{s:02d}"
         return f"{fmt(elapsed)} elapsed | ETA {fmt(rem)}"
@@ -1082,64 +1082,64 @@ class ProgressGUI:
         except:
             pass
     
-#%%#########################################################################################################################################  
+# #########################################################################################################################################  
 
 def main(reuse_drr=True):
     """
-    Description:  Execute les vérifications,
-    génére les DRR à partir des dicoms,
-    lis les pkV et le RTP pour extraire les informations essentielles,
-    effectue le recalage des DRR générées sur les images pkV,
-    génére des images damier et des images recalée pour chaque angles avant de générer un rapport.
+    Description: Runs the checks,
+    generates the DRRs from the dicoms,
+    reads the pkV and the RTP to extract the essential information,
+    performs the registration of the generated DRRs onto the pkV images,
+    generates checkerboard images and registered images for each angle before generating a report.
         
-    entrée:None
-    sortie:None
+    input: None
+    output: None
     
     """
 
    
     
-    #Extraction des angles 
-    logger.debug(f"debut main")
-    logger.debug(f"création des chemins d'accées si nécessaire ")
-    if not os.path.exists("Fichiers DICOM/01pCT"):
-        create_directories("Fichiers DICOM/01pCT")
-    if not os.path.exists("Fichiers DICOM/02RTSTRUCT"):
-        create_directories("Fichiers DICOM/02RTSTRUCT")
-    if not os.path.exists("Fichiers DICOM/03RTPLAN"):
-        create_directories("Fichiers DICOM/03RTPLAN")
-    if not os.path.exists("Fichiers DICOM/04pkV"):
-        create_directories("Fichiers DICOM/04pkV")
-    logger.debug(f"création achevée")
+    # Extraction of angles 
+    logger.debug(f"Start of main")
+    logger.debug(f"Create access paths if necessary ")
+    if not os.path.exists("DICOM Files/01pCT"):
+        create_directories("DICOM Files/01pCT")
+    if not os.path.exists("DICOM Files/02RTSTRUCT"):
+        create_directories("DICOM Files/02RTSTRUCT")
+    if not os.path.exists("DICOM Files/03RTPLAN"):
+        create_directories("DICOM Files/03RTPLAN")
+    if not os.path.exists("DICOM Files/04pkV"):
+        create_directories("DICOM Files/04pkV")
+    logger.debug(f"Creation completed")
     global path_pCT,path_RTS,path_RTP,path_pkV
-    path_pCT="Fichiers DICOM/01pCT"
-    path_RTS="Fichiers DICOM/02RTSTRUCT"
-    path_RTP="Fichiers DICOM/03RTPLAN"
-    path_pkV="Fichiers DICOM/04pkV"
-    # output_path configurable via variable globale (set dans process_dicom_folders)
+    path_pCT="DICOM Files/01pCT"
+    path_RTS="DICOM Files/02RTSTRUCT"
+    path_RTP="DICOM Files/03RTPLAN"
+    path_pkV="DICOM Files/04pkV"
+    # output_path configurable via global variable (set in process_dicom_folders)
     global output_path
     try:
         output_path
     except NameError:
         output_path = "test/mhatest"
-    create_directories(output_path+"/imgrap")
-    create_directories(output_path+"/recale")
+    create_directories(output_path+"/imgreport")
+    create_directories(output_path+"/registration")
     create_directories(output_path+"/tiff_isocal")
     create_directories(output_path+"/recap")
     create_directories(output_path+"/pkslice")
     create_directories(output_path+"/graph")
     erase_file(output_path+"/recap")
-    erase_file(output_path+"/recale")
-    erase_file(output_path+"/imgrap")
-    # on supprime surtout PAS ceux-là si on réutilise les DRR/kV déjà produits
+    erase_file(output_path+"/registration")
+    erase_file(output_path+"/imgreport")
+    # Do NOT delete these if reusing already produced DRR/kV
     if not reuse_drr:
         erase_file(output_path+"/pkslice")
         erase_file(output_path+"/tiff_isocal")
         
-    # on enregistre tous les logs aussi
-    log_file = os.path.join(output_path, "log_execution.txt")
+    # Also save all logs
+    log_file = os.path.join(output_path, "execution_log.txt")
 
-    logger.remove()  # enlève les handlers par défaut
+    logger.remove()  # remove default handlers
     logger.add(sys.stderr, level="DEBUG")  # console
     logger.add(
         log_file,
@@ -1165,7 +1165,7 @@ def main(reuse_drr=True):
     sys.stderr = Tee(sys.stderr, log_f)
         
     if full_check(path_pCT,path_RTP,path_pkV,path_RTS) is True:
-        logger.debug(f"fin check")
+        logger.debug(f"End of check")
         gantry_angle_pkv,sid,npkV,firstforsid,RefBeamNumber=extract_angle_pkV(path_pkV,output_path, reuse_drr=reuse_drr)
         input_path=path_pCT
         spacingx,spacingy,Rows,Columns,patient_ID,patient_Name,Aquisition_Date=extract_info_pkV(path_pkV)
@@ -1173,15 +1173,15 @@ def main(reuse_drr=True):
         sx=spacingx[0]*256/Columns/(sid[0]/1000)
         sy=spacingy[0]*256/Rows/(sid[0]/1000)
         RTPLabel,BeamName=extract_info_RTP(path_RTP,RefBeamNumber)
-        #crop_choice(Rows,Columns) #A ajouter si l'on veut faire l'analyse avec un crop différence de 150
-        global row, column, crop_values #A supprimer si l'on veut faire l'analyse avec un crop différence de 150
+        #crop_choice(Rows,Columns) #To add if you want to run the analysis with a different crop of 150
+        global row, column, crop_values #To remove if you want to run the analysis with a different crop of 150
         row=Rows #idem
         column= Columns #idem
         crop_values=(int(float(150)/sx),int(float(150)/sy)) #idem
-        #Def_Val_Bone() #A ajouter si l'on veut faire l'analyse avec un crop différence de 150
-        global bam #A supprimer si l'on veut faire l'analyse avec un bam différence de 3
+        #Def_Val_Bone() #To add if you want to run the analysis with a different crop of 150
+        global bam #To remove if you want to run the analysis with a different bam of 3
         bam = 3 #idem
-        #logger.debug(f"crop définit à :"+str(crop_values))
+        #logger.debug(f"crop set to:"+str(crop_values))
         
         tiff_files_li = []
         
@@ -1189,7 +1189,7 @@ def main(reuse_drr=True):
             #progress bar
             pg_drr = ProgressGUI(total=len(gantry_angle_pkv), title="Generating DRRs")
             
-            #génération des DRR
+            #DRR generation
             reconstruct_ct(gantry_angle_pkv,
                             sid,
                             spacingx,
@@ -1203,10 +1203,10 @@ def main(reuse_drr=True):
                             progress=pg_drr)
             tiff_files_li=[]
         
-            #fermerture progress bar
+            #close progress bar
             pg_drr.close()
             
-            # Vérifier que les fichiers requis existent avant le recalage
+            # Check that the required files exist before registration
             missing = []
             for i in range(len(gantry_angle_pkv)):
                 f = os.path.join(output_path, "pkslice", f"DRR_isocal_fourni_slice_{i}.tif")
@@ -1215,7 +1215,7 @@ def main(reuse_drr=True):
                 if not os.path.exists(m): missing.append(m)
             
             if reuse_drr and missing:
-                raise RuntimeError("reuse_drr=True mais fichiers manquants:\n" + "\n".join(missing[:20]))
+                raise RuntimeError("reuse_drr=True but missing files:\n" + "\n".join(missing[:20]))
             
             def to_float01(img):
                 x = img.astype(np.float32)
@@ -1238,7 +1238,7 @@ def main(reuse_drr=True):
                 y = y8.astype(np.float32) / 255.0
                 return float01_to_uint16(y)
                         
-            # Réglages
+            # Settings
             CLIP_LIMIT_ADAPT = 0.01
             KERNEL_SIZE      = None
             CLAHE_CLIP       = 10.0
@@ -1262,21 +1262,21 @@ def main(reuse_drr=True):
                 kv_eq_u16  = float01_to_uint16(kv_eq)
                 drr_eq_u16 = float01_to_uint16(drr_eq)
                 
-                # 3) Re-matching léger après adapthist (stabilise le damier)
+                # 3) Light re-matching after adapthist (stabilizes the checkerboard)
                 kv_eq_u16 = match_histograms(kv_eq_u16, drr_eq_u16, channel_axis=None).astype(np.uint16)
             
-                # 4) CLAHE final (micro-contraste)
+                # 4) Final CLAHE (micro-contrast)
                 kv = clahe_uint16(kv_eq_u16, clip=CLAHE_CLIP, tile=CLAHE_TILE)
                 drr = clahe_uint16(drr_eq_u16, clip=CLAHE_CLIP, tile=CLAHE_TILE)
             
                 io.imsave(path_kv,  kv,  check_contrast=False)
                 io.imsave(path_drr, drr, check_contrast=False)
             
-            #Crop des images
+            #Crop the images
             if crop_values !=None:
                 for i in range(len(gantry_angle_pkv)):
                     
-                    #crop des images
+                    # Crop images
                     tiff_files_li.append(output_path+"/tiff_isocal/im_isocal"+str(i)+".tif")
                     im = Image.open(output_path+"/pkslice/DRR_isocal_fourni_slice_"+str(i)+".tif")
                     im=im.crop(((column-crop_values[0])/2,(row-crop_values[1])/2,column-((column-crop_values[0])/2),row-(((row-crop_values[1]))/2)))
@@ -1292,9 +1292,9 @@ def main(reuse_drr=True):
                     tiff_files_li.append(output_path+"/tiff_isocal/im_isocal"+str(i)+".tif")
             tifftools.tiff_concat(tiff_files_li, output_path+"/output_isocal.tif", overwrite=True)
         else:
-            logger.debug("reuse_drr=True -> on saute reconstruct_ct (DRR déjà présents)")
+            logger.debug("reuse_drr=True -> skipping reconstruct_ct (DRR already present)")
                  
-        logger.debug(f"début du recalage")
+        logger.debug(f"Start of registration")
     
         def show_popup(img, title="Image"):
             arr = sitk.GetArrayFromImage(img)
@@ -1307,7 +1307,7 @@ def main(reuse_drr=True):
         
         for i in range(len(gantry_angle_pkv)):
             
-            #recalage voir https://simpleitk.readthedocs.io/en/master/link_ImageRegistrationMethod4_docs.html
+            # Registration see https://simpleitk.readthedocs.io/en/master/link_ImageRegistrationMethod4_docs.html
             fixed = sitk.ReadImage(output_path+"/pkslice/DRR_isocal_fourni_slice_"+str(i)+".tif", sitk.sitkFloat32)
             moving = sitk.ReadImage(output_path+"/tiff_isocal/im_isocal"+str(i)+".tif", sitk.sitkFloat32)
             
@@ -1320,7 +1320,7 @@ def main(reuse_drr=True):
             R1 = sitk.ImageRegistrationMethod()
             R1.SetMetricAsMeanSquares()
             
-            # Multi-résolution : très utile pour éviter les minima locaux
+            # Multi-resolution: very useful to avoid local minima
             R1.SetShrinkFactorsPerLevel([4, 2, 1])
             R1.SetSmoothingSigmasPerLevel([5, 4, 1])
             
@@ -1335,7 +1335,7 @@ def main(reuse_drr=True):
             
             outTx = R1.Execute(fixed, moving)
             
-            print("Final dx,dy:", outTx.GetParameters())
+            print("Final dx, dy:", outTx.GetParameters())
             print("-------")
             print(outTx)
             print(f"Optimizer stop condition: {R1.GetOptimizerStopConditionDescription()}")
@@ -1355,19 +1355,19 @@ def main(reuse_drr=True):
             simg2 = sitk.Cast(sitk.RescaleIntensity(out), sitk.sitkUInt16)
             cimg = sitk.Compose(simg1, simg2, simg1 // 2.0 + simg2 // 2.0)
             dimg=sitk.CheckerBoard(simg1,simg2,[4,4])
-            sitk.WriteImage(cimg, str(output_path+"/recale/im_isorecal"+str(i)+".tif"))
-            sitk.WriteImage(dimg, str(output_path+"/recale/im_isorecal"+str(i)+"damier.tif"))
+            sitk.WriteImage(cimg, str(output_path+"/registration/im_registered"+str(i)+".tif"))
+            sitk.WriteImage(dimg, str(output_path+"/registration/im_registered"+str(i)+"checkerboard.tif"))
             
-            # --- conversion SITK -> NumPy ---
+            # --- SITK to NumPy conversion ---
             fixed_np  = sitk.GetArrayFromImage(fixed).astype(np.float32)
             moving_np = sitk.GetArrayFromImage(moving).astype(np.float32)
             
-            # --- normalisation 0–255 ---
+            # --- Normalization 0-255 ---
             fixed_max  = fixed_np.max()
             moving_max = moving_np.max()
             
             if fixed_max == 0 or moving_max == 0:
-                raise RuntimeError("Image vide ou max==0 avant ECC")
+                raise RuntimeError("Empty image or max==0 before ECC")
             
             fixed_u8  = (fixed_np  / fixed_max  * 255.0).astype(np.uint8)
             moving_u8 = (moving_np / moving_max * 255.0).astype(np.uint8)
@@ -1389,26 +1389,26 @@ def main(reuse_drr=True):
                 dx = dy = 0.0
                 angle = 0.0
             
-            print("Rigid ECC dx,dy,angle:", dx, dy, angle)
+            print("Rigid ECC dx, dy, angle:", dx, dy, angle)
         tiff_files_li_recal=[]
         
-        #passage de tiff à png des images damiers et recalées
+        # Convert checkerboard and recalibrated images from TIFF to PNG
         for i in range(len(gantry_angle_pkv)):
-            tiff_files_li_recal.append(output_path+"/recale/im_isorecal"+str(i)+".tif")
-            #image pour le rapport (en png)
-            img = io.imread(output_path+"/recale/im_isorecal"+str(i)+"damier.tif")
+            tiff_files_li_recal.append(output_path+"/registration/im_registered"+str(i)+".tif")
+            # Image for the report (in PNG)
+            img = io.imread(output_path+"/registration/im_registered"+str(i)+"checkerboard.tif")
             plt.imshow(img,cmap='gray')
             plt.axis('off')
-            plt.savefig(output_path+"/imgrap/im_isorecal"+str(i)+"damier.png", bbox_inches='tight',pad_inches = 0)
+            plt.savefig(output_path+"/imgreport/im_registered"+str(i)+"checkerboard.png", bbox_inches='tight',pad_inches = 0)
             plt.close()
-            img = io.imread(output_path+"/recale/im_isorecal"+str(i)+".tif")
+            img = io.imread(output_path+"/registration/im_registered"+str(i)+".tif")
             plt.imshow(img)
             plt.axis('off')
-            plt.savefig(output_path+"/imgrap/im_isorecal"+str(i)+".png", bbox_inches='tight',pad_inches = 0)
+            plt.savefig(output_path+"/imgreport/im_registered"+str(i)+".png", bbox_inches='tight',pad_inches = 0)
             plt.close()
-        tifftools.tiff_concat(tiff_files_li_recal, output_path+"/recale/recaler.tif", overwrite=True)
-        #génération du rapport
-        rapport(output_path=output_path,
+        tifftools.tiff_concat(tiff_files_li_recal, output_path+"/registration/registered_concat.tif", overwrite=True)
+        # Generate report
+        report(output_path=output_path,
                 npkV=npkV,
                 spacingx=sx,
                 spacingy=sy,
@@ -1417,64 +1417,73 @@ def main(reuse_drr=True):
                 patient_Name=patient_Name,
                 Aquisition_Date=Aquisition_Date,
                 RTPLabel=RTPLabel,BeamName=BeamName)
-    logger.debug(f"fin main")
+    logger.debug(f"End of main")
     
 def process_dicom_folders(main_folder):
     """
-    Trouve tous les dossiers contenant "Fichiers DICOM" dans main_folder,
-    les traite un par un en les renommant, exécutant main(), puis restaurant leur nom
-    et les déplaçant dans un dossier "fait".
-    Affiche une fenêtre récapitulative à la fin.
+    Finds all folders containing "DICOM Files" in main_folder,
+    processes them one by one by renaming them, running main(), then restoring their name
+    and moving them into a "done" folder.
+    Displays a summary window at the end.
     """
     import shutil
     from tkinter import Tk, ttk, messagebox, Label, Scrollbar, Listbox, END, Button, Toplevel
 
-    # 1. Lister tous les dossiers contenant "Fichiers DICOM"
+    # 1. List all folders containing "DICOM Files"
     dicom_folders = [
         d for d in os.listdir(main_folder)
-        if os.path.isdir(os.path.join(main_folder, d)) and "Fichiers DICOM" in d
+        if os.path.isdir(os.path.join(main_folder, d)) and "DICOM Files" in d
     ]
-    dicom_folders.sort()  # Pour un ordre prévisible
+    dicom_folders.sort()  # For a predictable order
 
-    # Créer le dossier "fait" s'il n'existe pas
-    fait_folder = os.path.join(main_folder, "fait")
-    os.makedirs(fait_folder, exist_ok=True)
+    # Create the "done" folder if it doesn't exist
+    done_folder = os.path.join(main_folder, "done")
+    os.makedirs(done_folder, exist_ok=True)
 
-    # Liste pour stocker les résultats
-    resultats = []
+    # List to store results
+    results = []
 
     for original_name in dicom_folders:
         original_path = os.path.join(main_folder, original_name)
-        temp_path = os.path.join(main_folder, "Fichiers DICOM")
+        temp_path = os.path.join(main_folder, "DICOM Files")
 
-        # 2. Renommer le dossier en "Fichiers DICOM"
+        # 2. Rename the folder to "DICOM Files"
         os.rename(original_path, temp_path)
 
         try:
-            # --- Trouver tous les sous-dossiers 04pkV_frX ---
+            # --- Find all subfolders 04pkV_frX ---
             pkv_parent = os.path.join(temp_path, "04pkV")
-            # Dans ton arborescence réelle, tu as plutôt 04pkV_fr1..fr5
-            # donc on cherche dans temp_path les dossiers qui commencent par "04pkV_fr"
+            # In your actual tree, you have rather 04pkV_fr1..fr5
+            # So we look in temp_path for folders starting with "04pkV_fr"
             pkv_variants = sorted([
                 d for d in os.listdir(temp_path)
                 if os.path.isdir(os.path.join(temp_path, d)) and d.startswith("04pkV_fr")
             ])
 
+            # Fallback: no 04pkV_frX subfolder, but a plain "04pkV" folder exists
+            # (single-fraction case) -> treat it as one variant
+            single_pkv = False
+            if not pkv_variants and os.path.isdir(pkv_parent):
+                pkv_variants = ["04pkV"]
+                single_pkv = True
+
             if not pkv_variants:
-                raise RuntimeError("Aucun dossier 04pkV_frX trouvé (ex: 04pkV_fr1..fr5).")
+                raise RuntimeError("No 04pkV or 04pkV_frX folder found (e.g.: 04pkV_fr1..fr5).")
 
             patient_status = []
 
             for pkv_name in pkv_variants:
                 pkv_path = os.path.join(temp_path, pkv_name)
                 std_pkv_path = os.path.join(temp_path, "04pkV")
-                    
-                # 1) Renommer temporairement 04pkV_frX -> 04pkV
-                os.rename(pkv_path, std_pkv_path)
+
+                # 1) Temporarily rename 04pkV_frX -> 04pkV
+                #    (skip the rename if it's already the plain "04pkV" folder)
+                if not single_pkv:
+                    os.rename(pkv_path, std_pkv_path)
 
                 try:
-                    # 2) Fixer un output_path unique pour éviter l'écrasement
-                    # (variable globale lue par main() via le mini-patch ci-dessus)
+                    # 2) Set a unique output_path to avoid overwriting
+                    # (global variable read by main() via the mini-patch above)
                     global output_path
                     safe_patient = original_name.replace(" ", "_").replace("/", "_")
                     output_path = os.path.join("test", f"{safe_patient}_{pkv_name}")
@@ -1483,64 +1492,65 @@ def process_dicom_folders(main_folder):
                         try:
                             #################################### REUSE_DRR
                             ####################################
-                            main(reuse_drr=False) 
+                            main(reuse_drr=True) 
                         except Exception as e:
                             import traceback
                             traceback.print_exc()
-                            input("Erreur — appuie sur Entrée pour quitter")
-                        patient_status.append(f"{pkv_name}: Succès")
+                            input("Error — press Enter to quit")
+                        patient_status.append(f"{pkv_name}: Success")
                 except Exception as e:
-                    patient_status.append(f"{pkv_name}: Échec ({e})")
+                    patient_status.append(f"{pkv_name}: Failed ({e})")
                 finally:
-                    # 3) Restaurer 04pkV -> 04pkV_frX
-                    os.rename(std_pkv_path, pkv_path)
-
-            statut = " | ".join(patient_status)
+                    # 3) Restore 04pkV -> 04pkV_frX
+                    #    (skip if it's already the plain "04pkV" folder)
+                    if not single_pkv:
+                        os.rename(std_pkv_path, pkv_path)
+            status = " | ".join(patient_status)
 
         except Exception as e:
-            statut = f"Échec : {str(e)}"
+            status = f"Failed: {str(e)}"
             print(str(e))
 
         finally:
-            # 4. Restaurer le nom original avec "1000_" devant
-            new_name = f"bin1000{original_name}"
+            # 4. Restore the original name with "1000_" in front
+            new_name = f"{original_name}"
             new_path = os.path.join(main_folder, new_name)
             os.rename(temp_path, new_path)
 
-            # Déplacer le dossier dans "fait" (au lieu de copier)
-            dest_path = os.path.join(fait_folder, new_name)
+            # Move the folder to "done" (instead of copying)
+            dest_path = os.path.join(done_folder, new_name)
             try:
                 shutil.move(new_path, dest_path)
-                statut += " | Déplacement réussi"
+                status += " | Move successful"
             except Exception as e:
-                statut += f" | Déplacement échoué : {str(e)}"
+                status += f" | Move failed: {str(e)}"
 
-            resultats.append((original_name, statut, new_name))
+            results.append((original_name, status, new_name))
 
 
-    # --- Fenêtre récapitulative ---
+    # --- Summary window ---
     root = Toplevel()
-    root.title("Récapitulatif des dossiers traités")
+    root.title("Summary of processed folders")
     root.geometry("700x400")
 
-    # Liste des résultats
+    # List of results
     lb = Listbox(root, width=85, height=15)
     lb.pack(pady=10, padx=10, fill="both", expand=True)
 
-    # Ajout des résultats
-    for nom, statut, nouveau_nom in resultats:
-        lb.insert(END, f"Dossier: {nom} → {nouveau_nom} | Statut: {statut}")
+    # Add results
+    for name, status, new_name in results:
+        lb.insert(END, f"Folder: {name} → {new_name} | Status: {status}")
 
-    # Bouton pour fermer
-    btn_fermer = Button(root, text="Fermer", command=root.destroy)
-    btn_fermer.pack(pady=10)
+    # Close button
+    btn_close = Button(root, text="Close", command=root.destroy)
+    btn_close.pack(pady=10)
 
     root.focus_force()
     root.grab_set()
     root.mainloop()
     
 if __name__ == "__main__":
-    dossier_principal = os.getcwd()
-    #print(dossier_principal)# À adapter
-    process_dicom_folders(dossier_principal)
+    main_folder_path = os.getcwd()
+    #print(main_folder_path)# To adapt
+    process_dicom_folders(main_folder_path)
     
