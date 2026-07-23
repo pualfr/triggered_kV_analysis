@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the archived software release and the associated manuscript."
+type: software
+title: "Retrospective triggered kV image analysis workflow"
+version: 1.0.0
+license: BSD-3-Clause
+authors:
+  - family-names: "Techer"
+    given-names: "Quentin"
+  - family-names: "Grandgirard"
+    given-names: "Noé"
+  - family-names: "Sandjong"
+    given-names: "Saturnin"
+  - family-names: "Marchesi"
+    given-names: "Vincent"
+  - family-names: "Retif"
+    given-names: "Paul"
+abstract: >-
+  Python workflow for retrospective intrafraction motion verification using
+  triggered kilovoltage images acquired during stereotactic body radiotherapy
+  for bone metastases. The workflow generates angle-specific digitally
+  reconstructed radiographs from the planning CT, preprocesses triggered kV
+  images and DRRs, performs rigid in-plane registration, and exports
+  image-level displacement estimates and quality-control visualizations.
+keywords:
+  - radiotherapy
+  - stereotactic body radiotherapy
+  - bone metastases
+  - intrafraction motion
+  - triggered kilovoltage imaging
+  - image registration
+  - digitally reconstructed radiograph
+  - quality assurance

@@ -1,14 +1,22 @@
-numpy
-pandas
-matplotlib
-pydicom
-SimpleITK
+# Direct runtime dependencies recorded from the original study environment
+# Python 3.12.4 (WinPython 64-bit, Windows)
+#
+# Important: torchio 0.20.17 was locally modified in the study environment to
+# derive the CT centre from the RTPLAN isocentre. Installing the upstream wheel
+# alone does not reproduce that modification. See vendor/README.md and
+# docs/workflow.md.
+
+numpy==1.26.4
+pandas==2.2.2
+matplotlib==3.9.0
+pydicom==3.0.1
+SimpleITK==2.5.2
 diffdrr==0.5.1
-torch
-torchio
-opencv-python
-scikit-image
-Pillow
-tifftools
-reportlab
-loguru
+torch==2.2.2
+torchio==0.20.17
+opencv-python==4.10.0.82
+scikit-image==0.23.2
+Pillow==10.3.0
+tifftools==1.6.1
+reportlab==4.2.0
+loguru==0.7.3
